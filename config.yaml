@@ -1,0 +1,26 @@
+printers:
+  MK4:
+    name: "Prusa MK4"
+    nozzles: ["0.4mm"]
+    filaments: ["PLA_ROSA", "PETG_ROSA", "TPU_ROSA"]
+    profiles: ["DRAFT", "DETAIL", "SPEED", "IGLIDUR_i190"]
+
+  XL:
+    name: "Prusa XL"
+    nozzles: ["1: 0.4mm", "2: 0.4mm", "3: 0.4mm", "4: 0.4mm", "5: 0.4mm"]
+    filaments: ["PLA_ROSA", "PETG_ROSA", "TPU_ROSA"]
+    profiles: ["SPEED", "STRUCTURAL", "FAST_DETAIL"]   
+
+  CR10:
+    name: "Creality CR10"
+    nozzles: ["0.6mm"]
+    filaments: ["PLA_ROSA"]
+    profiles: ["SUPERDRAFT"]
+
+fill_pattern:
+  rectilinear: "Rectiligne"
+  honeycomb: "Nid d'abeille"
+  gyroid: "Gyroide"
+  adaptivecubic: "Cubique Adaptatif"
+
+fill_density: ["5%", "10%", "20%", "40%", "60%"]
