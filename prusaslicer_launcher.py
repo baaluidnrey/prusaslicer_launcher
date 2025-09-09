@@ -17,6 +17,18 @@ class PrusaSlicerLauncher(QMainWindow):
     def __init__(self, parent=None):
         super(PrusaSlicerLauncher, self).__init__(parent)
         
+        self.printerSettings = {
+            'name': {'label': "Name", 'value': QComboBox()},
+            'nozzles': {'label': "Nozzle", 'value': QComboBox()},
+            'filaments': {'label': "Filament", 'value': QComboBox()},
+            'profiles': {'label': "Profile",'value': QComboBox()},          
+        }
+        self.fillSettings = {
+            'pattern': {'label': "Pattern", 'value': QComboBox()},
+            'density': {'label': "Density", 'value': QComboBox()},         
+        }
+        
+                    
         self.printerName = QComboBox()
         self.nozzle = QComboBox()
         self.filament = QComboBox()
@@ -35,8 +47,9 @@ class PrusaSlicerLauncher(QMainWindow):
         
         # create application
         self.createGUI()
-        self.setInitialSettingsFields()
+        self.setInitialSettings()
         self.printerName.currentIndexChanged.connect(self.setPrinterSettings)
+        self.printerSettings["name"]["value"].currentIndexChanged.connect(self.setPrinterSettings)
 
 
     def createGUI(self):
@@ -67,9 +80,26 @@ class PrusaSlicerLauncher(QMainWindow):
         grid.addWidget(self.fillDensity,6,2) 
 
         groupboxSettings.setLayout(grid)
-    
+        
+        # test : printer settings, with automatic fill
+        grid = QGridLayout()
+        for index, setting in enumerate(self.printerSettings.values(), start=1):
+            grid.addWidget(QLabel(setting["label"]), index, 1)
+            grid.addWidget(setting["value"], index, 2)
+        printer_group = QGroupBox("Printer")
+        printer_group.setLayout(grid)
+
+        grid = QGridLayout()
+        for index, setting in enumerate(self.fillSettings.values(), start=1):
+            grid.addWidget(QLabel(setting["label"]), index, 1)
+            grid.addWidget(setting["value"], index, 2)
+        fill_group = QGroupBox("Fill")
+        fill_group.setLayout(grid)
+
         vbox = QVBoxLayout()
         vbox.addWidget(groupboxSettings)
+        vbox.addWidget(printer_group)
+        vbox.addWidget(fill_group)
         vbox.addWidget(self.files)
         vbox.addWidget(self.buttonPrusa)
         
@@ -81,12 +111,19 @@ class PrusaSlicerLauncher(QMainWindow):
         self.setWindowIcon(QIcon("./logo_isir.png"))       
 
 
-    def setInitialSettingsFields(self):
+    def setInitialSettings(self):
         [self.printerName.addItem(printer["name"]) for printer in self.config["printers"].values()]        
         self.setPrinterSettings()   # first as default
         [self.fillPattern.addItem(item) for item in self.config["fill_pattern"].values()]
         [self.fillDensity.addItem(item) for item in self.config["fill_density"]]
         self.fillDensity.setCurrentIndex(2)
+        
+        # test : printer settings, with automatic fill
+        [self.printerSettings["name"]["value"].addItem(printer["name"]) for printer in self.config["printers"].values()]
+        [self.fillSettings["pattern"]["value"].addItem(item) for item in self.config["fill_pattern"].values()]
+        [self.fillSettings["density"]["value"].addItem(item) for item in self.config["fill_density"]]
+        self.fillSettings["density"]["value"].setCurrentIndex(2)
+        
         
     def setPrinterSettings(self):
         _, printer = list(self.config["printers"].items())[self.printerName.currentIndex()]
@@ -94,6 +131,15 @@ class PrusaSlicerLauncher(QMainWindow):
         [self.nozzle.addItem(item) for item in printer["nozzles"]]
         [self.filament.addItem(item) for item in printer["filaments"]]
         [self.profile.addItem(item) for item in printer["profiles"]]
+        
+        # test : printer settings, with automatic fill
+        _, printer = list(self.config["printers"].items())[self.printerSettings["name"]["value"].currentIndex()]
+        self.printerSettings["nozzles"]["value"].clear()
+        self.printerSettings["filaments"]["value"].clear()
+        self.printerSettings["profiles"]["value"].clear()
+        [self.printerSettings["nozzles"]["value"].addItem(item) for item in printer["nozzles"]]
+        [self.printerSettings["filaments"]["value"].addItem(item) for item in printer["filaments"]]
+        [self.printerSettings["profiles"]["value"].addItem(item) for item in printer["profiles"]]
 
             
 def main():
