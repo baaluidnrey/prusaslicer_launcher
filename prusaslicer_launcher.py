@@ -55,8 +55,7 @@ class WidgetSelectionFiles(QWidget):
         fileDialog = QFileDialog(self)
         fileDialog.setFileMode(QFileDialog.ExistingFiles)
         files, _ = fileDialog.getOpenFileNames(self,'Selection of the  files')
-        for file in files:
-            self.files.addItem(file)
+        [self.files.addItem(file) for file in files]
 
     def deleteFiles(self):
         item = self.files.selectedItems()[0]
@@ -107,12 +106,13 @@ class PrusaSlicerLauncher(QMainWindow):
         
         # create application
         self.createGUI()
+        self.setInitialSettingsFields()
 
 
     def createGUI(self):
         
         # labels
-        labelPrinter = QLabel("Name :")
+        labelPrinter = QLabel("Printer :")
         labelNozzle = QLabel("Nozzle :")
         labelFilament = QLabel("Filament :")
         labelProfile = QLabel("Profile :")
@@ -150,6 +150,25 @@ class PrusaSlicerLauncher(QMainWindow):
         self.setWindowTitle("PrusaSlicer pour les fainéants")
         self.setWindowIcon(QIcon("./logo_isir.png"))       
 
+
+    def setInitialSettingsFields(self):
+        
+        [self.printerName.addItem(printer["name"]) for printer in self.config["printers"].values()]
+        
+        _, firstPrinter = next(iter(self.config["printers"].items()))   # first printer as default
+        self.setPrinterSettings(firstPrinter)
+        
+        [self.fillPattern.addItem(item) for item in self.config["fill_pattern"].values()]
+        [self.fillDensity.addItem(item) for item in self.config["fill_density"]]
+        self.fillDensity.setCurrentIndex(2)
+        
+        
+    def setPrinterSettings(self, printer):
+        [self.nozzle.addItem(item) for item in printer["nozzles"]]
+        [self.filament.addItem(item) for item in printer["filaments"]]
+        [self.profile.addItem(item) for item in printer["profiles"]]  
+
+            
 def main():
    app = QApplication(sys.argv)
    window = PrusaSlicerLauncher()
