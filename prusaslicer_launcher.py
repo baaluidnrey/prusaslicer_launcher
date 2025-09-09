@@ -107,6 +107,7 @@ class PrusaSlicerLauncher(QMainWindow):
         # create application
         self.createGUI()
         self.setInitialSettingsFields()
+        self.printerName.currentIndexChanged.connect(self.setPrinterSettings)
 
 
     def createGUI(self):
@@ -152,21 +153,18 @@ class PrusaSlicerLauncher(QMainWindow):
 
 
     def setInitialSettingsFields(self):
-        
-        [self.printerName.addItem(printer["name"]) for printer in self.config["printers"].values()]
-        
-        _, firstPrinter = next(iter(self.config["printers"].items()))   # first printer as default
-        self.setPrinterSettings(firstPrinter)
-        
+        [self.printerName.addItem(printer["name"]) for printer in self.config["printers"].values()]        
+        self.setPrinterSettings()   # first as default
         [self.fillPattern.addItem(item) for item in self.config["fill_pattern"].values()]
         [self.fillDensity.addItem(item) for item in self.config["fill_density"]]
         self.fillDensity.setCurrentIndex(2)
         
-        
-    def setPrinterSettings(self, printer):
+    def setPrinterSettings(self):
+        _, printer = list(self.config["printers"].items())[self.printerName.currentIndex()]
+        [item.clear() for item in [self.nozzle, self.filament, self.profile]]
         [self.nozzle.addItem(item) for item in printer["nozzles"]]
         [self.filament.addItem(item) for item in printer["filaments"]]
-        [self.profile.addItem(item) for item in printer["profiles"]]  
+        [self.profile.addItem(item) for item in printer["profiles"]]
 
             
 def main():
