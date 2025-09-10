@@ -1,6 +1,9 @@
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+
+from PyQt5.QtWidgets import QWidget, QListWidget, QPushButton
+from PyQt5.QtWidgets import QAbstractItemView, QFileDialog
+from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QGroupBox
 
 class WidgetSelectionFiles(QWidget):
 

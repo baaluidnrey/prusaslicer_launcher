@@ -1,11 +1,10 @@
-#! /usr/bin/python
-# -*- coding: utf-8 -*-
-
 import sys
 import subprocess
+
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QComboBox, QLabel
+from PyQt5.QtWidgets import QVBoxLayout, QGroupBox, QGridLayout
 
 import yaml
 from pathlib import Path
