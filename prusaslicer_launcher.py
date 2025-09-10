@@ -44,26 +44,20 @@ class PrusaSlicerLauncher(QMainWindow):
 
     def createGUI(self):
         
-        # printerSettings
-        grid = QGridLayout()
-        for index, setting in enumerate(self.printerSettings.values(), start=1):
-            grid.addWidget(QLabel(setting["label"]), index, 1)
-            grid.addWidget(setting["value"], index, 2)
-        printer_group = QGroupBox("Printer")
-        printer_group.setLayout(grid)
-
-        # fillSettings
-        grid = QGridLayout()
-        for index, setting in enumerate(self.fillSettings.values(), start=1):
-            grid.addWidget(QLabel(setting["label"]), index, 1)
-            grid.addWidget(setting["value"], index, 2)
-        fill_group = QGroupBox("Fill")
-        fill_group.setLayout(grid)
-
-        # layout
         vbox = QVBoxLayout()
-        vbox.addWidget(printer_group)
-        vbox.addWidget(fill_group)
+        
+        # settings
+        for settings, legend in zip([self.printerSettings, self.fillSettings],
+                                    ["Printer settings", "Fill settings"]):
+            grid = QGridLayout()
+            for index, setting in enumerate(settings.values(), start=1):
+                grid.addWidget(QLabel(setting["label"]), index, 1)
+                grid.addWidget(setting["value"], index, 2)
+            groupbox = QGroupBox(legend)
+            groupbox.setLayout(grid)
+            vbox.addWidget(groupbox)
+
+        # other elements
         vbox.addWidget(self.files)
         vbox.addWidget(self.buttonPrusa)
         
