@@ -1,21 +1,24 @@
 printers:
   MK4:
     name: "Prusa MK4"
-    nozzles: ["0.4mm"]
+    # nozzles: ["0.4mm"]
     filaments: ["PLA_ROSA", "PETG_ROSA", "TPU_ROSA"]
-    profiles: ["DRAFT", "DETAIL", "SPEED", "IGLIDUR_i190"]
+    profiles: ["DRAFT", "DETAIL", "SPEED"]
+    apply_filament_settings: True
 
   XL:
     name: "Prusa XL"
-    nozzles: ["1: 0.4mm", "2: 0.4mm", "3: 0.4mm", "4: 0.4mm", "5: 0.4mm"]
+    # nozzles: ["1: 0.4mm", "2: 0.4mm", "3: 0.4mm", "4: 0.4mm", "5: 0.4mm"]
     filaments: ["PLA_ROSA", "PETG_ROSA", "TPU_ROSA"]
-    profiles: ["SPEED", "STRUCTURAL", "FAST_DETAIL"]   
+    profiles: ["SPEED", "STRUCTURAL"]
+    apply_filament_settings: False
 
   CR10:
     name: "Creality CR10"
-    nozzles: ["0.6mm"]
+    # nozzles: ["0.6mm"]
     filaments: ["PLA_ROSA"]
     profiles: ["SUPERDRAFT"]
+    apply_filament_settings: True
 
 fill_pattern:
   rectilinear: "Rectiligne"
