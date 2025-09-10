@@ -18,13 +18,14 @@ class PrusaSlicerLauncher(QMainWindow):
         
         self.printerSettings = {
             'name': {'label': "Name", 'value': QComboBox()},
-            'nozzles': {'label': "Nozzle", 'value': QComboBox()},
+            # 'nozzles': {'label': "Nozzle", 'value': QComboBox()},
             'filaments': {'label': "Filament", 'value': QComboBox()},
-            'profiles': {'label': "Profile",'value': QComboBox()},          
+            'profiles': {'label': "Profile",'value': QComboBox()},         
         }
+        self.apply_filament_settings = False
         self.fillSettings = {
             'pattern': {'label': "Pattern", 'value': QComboBox()},
-            'density': {'label': "Density", 'value': QComboBox()},         
+            'density': {'label': "Density", 'value': QComboBox()},   
         }
         self.buttonPrusa = QPushButton("Open PrusaSlicer")
         
@@ -80,7 +81,9 @@ class PrusaSlicerLauncher(QMainWindow):
 
     def setPrinterSettings(self):
         _, printer = list(self.config["printers"].items())[self.printerSettings["name"]["value"].currentIndex()]
-        for key in ["nozzles", "filaments", "profiles"]:
+        self.apply_filament_settings = printer["apply_filament_settings"]
+        # for key in ["nozzles", "filaments", "profiles"]:
+        for key in ["filaments", "profiles"]:
             self.printerSettings[key]["value"].clear()
             [self.printerSettings[key]["value"].addItem(item) for item in printer[key]]
             
@@ -93,11 +96,14 @@ class PrusaSlicerLauncher(QMainWindow):
 
     def optionsFilament(self):
         options = dict()
-        file_path = f'.\\filaments\{self.printerSettings["filaments"]["value"].currentText()}.ini'
-        with open(file_path, "r") as file:
-            for line in file:
-                option, val = line.replace('\n', '').split(" = ")
-                options[option] = val
+        if self.apply_filament_settings:
+            file_path = f'.\\filaments\{self.printerSettings["filaments"]["value"].currentText()}.ini'
+            with open(file_path, "r") as file:
+                for line in file:
+                    option, val = line.replace('\n', '').split(" = ")
+                    options[option] = val
+        else:
+            print("No application of the filament settings.")
         return options
     
     
@@ -128,6 +134,7 @@ class PrusaSlicerLauncher(QMainWindow):
 
         # open prusa slicer with all the options
         cmd = f'{self.prusa_path} {cad_files} --load {profile_dst} {self.optionsFill()}'
+        print(cmd)
         subprocess.Popen(cmd, shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE)
 
 def main():
