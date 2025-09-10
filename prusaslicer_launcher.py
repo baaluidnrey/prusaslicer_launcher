@@ -79,15 +79,11 @@ class PrusaSlicerLauncher(QMainWindow):
         
 
     def setPrinterSettings(self):
-        self.printerSettings["nozzles"]["value"].clear()
-        self.printerSettings["filaments"]["value"].clear()
-        self.printerSettings["profiles"]["value"].clear()
-        
         _, printer = list(self.config["printers"].items())[self.printerSettings["name"]["value"].currentIndex()]
-        [self.printerSettings["nozzles"]["value"].addItem(item) for item in printer["nozzles"]]
-        [self.printerSettings["filaments"]["value"].addItem(item) for item in printer["filaments"]]
-        [self.printerSettings["profiles"]["value"].addItem(item) for item in printer["profiles"]]
-
+        for key in ["nozzles", "filaments", "profiles"]:
+            self.printerSettings[key]["value"].clear()
+            [self.printerSettings[key]["value"].addItem(item) for item in printer[key]]
+        
 
 def main():
    app = QApplication(sys.argv)
