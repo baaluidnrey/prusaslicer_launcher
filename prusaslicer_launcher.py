@@ -40,6 +40,7 @@ class PrusaSlicerLauncher(QMainWindow):
         self.createGUI()
         self.setInitialSettings()
         self.printerSettings["name"]["value"].currentIndexChanged.connect(self.setPrinterSettings)
+        self.buttonPrusa.clicked.connect(self.openPrusaSlicer)
 
 
     def createGUI(self):
@@ -83,6 +84,35 @@ class PrusaSlicerLauncher(QMainWindow):
         for key in ["nozzles", "filaments", "profiles"]:
             self.printerSettings[key]["value"].clear()
             [self.printerSettings[key]["value"].addItem(item) for item in printer[key]]
+            
+            
+    def selectedProfile(self):
+        printer = list(self.config["printers"].keys())[self.printerSettings["name"]["value"].currentIndex()]
+        profile = self.printerSettings["profiles"]["value"].currentText()
+        return printer + "_" + profile
+
+
+    def optionsFilament(self):
+        options = dict()
+        file_path = f'.\\filaments\{self.printerSettings["filaments"]["value"].currentText()}.ini'
+        with open(file_path, "r") as file:
+            for line in file:
+                option, val = line.replace('\n', '').split(" = ")
+                options[option] = val
+        return options
+    
+    
+    def optionsFill(self):
+        pattern = list(self.config["fill_pattern"].keys())[self.fillSettings["pattern"]["value"].currentIndex()]
+        density = self.fillSettings["density"]["value"].currentText()
+        return "--fill-pattern " + pattern + " --fill-density " + density   
+
+
+    def openPrusaSlicer(self):
+        print(self.selectedProfile())
+        print(self.optionsFilament())
+        print(self.optionsFill())
+        
         
 
 def main():
