@@ -58,7 +58,7 @@ class WidgetSelectionFiles(QWidget):
     def clearFiles(self):
         self.files.clear()
         
-    def files(self):
+    def getFiles(self):
         files = []
         for index in range(self.files.count()):
             files.append(self.files.item(index).text())

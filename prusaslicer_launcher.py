@@ -30,7 +30,7 @@ class PrusaSlicerLauncher(QMainWindow):
         self.buttonPrusa = QPushButton("Open PrusaSlicer")
         
         self.config = yaml.safe_load(Path("config.yaml").read_text())
-        self.files = WidgetSelectionFiles()
+        self.selectionFiles = WidgetSelectionFiles()
         
         # commands
         self.prusa_path = "\"C:\Program Files\Prusa3D\PrusaSlicer\prusa-slicer.exe\""
@@ -59,7 +59,7 @@ class PrusaSlicerLauncher(QMainWindow):
             vbox.addWidget(groupbox)
 
         # other elements
-        vbox.addWidget(self.files)
+        vbox.addWidget(self.selectionFiles)
         vbox.addWidget(self.buttonPrusa)
         
         centralWidget = QWidget()
@@ -109,11 +109,27 @@ class PrusaSlicerLauncher(QMainWindow):
 
 
     def openPrusaSlicer(self):
-        print(self.selectedProfile())
-        print(self.optionsFilament())
-        print(self.optionsFill())
+          
+        profile_src = f".\profiles\{self.selectedProfile()}.ini"
+        profile_dst = ".\profiles\\tmp.ini"
         
-        
+        # apply filament settings
+        options_filament = self.optionsFilament()
+        with open(profile_dst, "w") as file_dst:
+            for line in open(profile_src, "r"):
+                if " = " in line:
+                    option, _ = line.replace('\n', '').split(" = ", 1)
+                    if option in options_filament.keys():
+                        file_dst.write(f'{option} = {options_filament[option]}\n')
+                    else:
+                        file_dst.write(line)
+                        
+        # 3D files
+        cad_files = " ".join(f'"{file}"' for file in self.selectionFiles.getFiles())
+
+        # open prusa slicer with all the options
+        cmd = f'{self.prusa_path} {cad_files} --load {profile_dst} {self.optionsFill()}'
+        subprocess.Popen(cmd, shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE)
 
 def main():
    app = QApplication(sys.argv)
