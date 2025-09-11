@@ -31,11 +31,7 @@ class PrusaSlicerLauncher(QMainWindow):
         
         self.config = yaml.safe_load(Path("config.yaml").read_text())
         self.selectionFiles = WidgetSelectionFiles()
-        
-        # commands
-        self.prusa_path = "\"C:\Program Files\Prusa3D\PrusaSlicer\prusa-slicer.exe\""
-        self.config_path = "\".\config\""
-        
+                
         # create application
         self.createGUI()
         self.setInitialSettings()
@@ -100,7 +96,7 @@ class PrusaSlicerLauncher(QMainWindow):
     def optionsFilament(self):
         options = dict()
         if self.apply_filament_settings:
-            file_path = f'.\\filaments\{self.printerSettings["filaments"]["value"].currentText()}.ini'
+            file_path = f'./filaments/{self.printerSettings["filaments"]["value"].currentText()}.ini'
             with open(file_path, "r") as file:
                 for line in file:
                     option, val = line.replace('\n', '').split(" = ")
@@ -110,16 +106,10 @@ class PrusaSlicerLauncher(QMainWindow):
         return options
     
     
-    def optionsFill(self):
-        pattern = list(self.config["fill_pattern"].keys())[self.fillSettings["pattern"]["value"].currentIndex()]
-        density = self.fillSettings["density"]["value"].currentText()
-        return "--fill-pattern " + pattern + " --fill-density " + density   
-
-
     def openPrusaSlicer(self):
           
-        profile_src = f".\profiles\{self.selectedProfile()}.ini"
-        profile_dst = ".\profiles\\tmp.ini"
+        profile_src = f"./profiles/{self.selectedProfile()}.ini"
+        profile_dst = "./profiles/tmp.ini"
         
         # apply filament settings
         options_filament = self.optionsFilament()
@@ -131,14 +121,19 @@ class PrusaSlicerLauncher(QMainWindow):
                         file_dst.write(f'{option} = {options_filament[option]}\n')
                     else:
                         file_dst.write(line)
-                        
-        # 3D files
-        cad_files = " ".join(f'"{file}"' for file in self.selectionFiles.getFiles())
-
+            
         # open prusa slicer with all the options
-        cmd = f'{self.prusa_path} {cad_files} --load {profile_dst} {self.optionsFill()}'
-        print(cmd)
-        subprocess.Popen(cmd, shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE)
+        cmd = [
+            self.config["prusa_path"],
+            '--load', profile_dst,
+            '--fill-pattern', list(self.config["fill_pattern"].keys())[self.fillSettings["pattern"]["value"].currentIndex()],
+            '--fill-density', self.fillSettings["density"]["value"].currentText(),
+        ]
+        for index, file in enumerate(self.selectionFiles.getFiles()):
+            cmd.insert(1+index, file)
+            
+        subprocess.Popen(cmd, shell=False, creationflags=subprocess.CREATE_NEW_CONSOLE)
+
 
 def main():
    app = QApplication(sys.argv)
