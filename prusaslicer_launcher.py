@@ -74,8 +74,11 @@ class PrusaSlicerLauncher(QMainWindow):
         [self.printerSettings["name"]["value"].addItem(printer["name"]) for printer in self.config["printers"].values()]
         self.setPrinterSettings()   # first as default
         
-        [self.fillSettings["pattern"]["value"].addItem(item) for item in self.config["fill_pattern"].values()]
-        [self.fillSettings["density"]["value"].addItem(item) for item in self.config["fill_density"]]
+        for item in self.config["fill_pattern"].values():
+            self.fillSettings["pattern"]["value"].addItem(item)
+            
+        for item in self.config["fill_density"]:
+            self.fillSettings["density"]["value"].addItem(item)
         self.fillSettings["density"]["value"].setCurrentIndex(2)
         
 
