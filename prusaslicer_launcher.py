@@ -41,7 +41,13 @@ class PrusaSlicerLauncher(QMainWindow):
 
     def createGUI(self):
         
+        # layout
         vbox = QVBoxLayout()
+        centralWidget = QWidget()
+        centralWidget.setLayout(vbox)
+        self.setCentralWidget(centralWidget)
+        self.setWindowTitle("PrusaSlicer pour les fainéants")
+        self.setWindowIcon(QIcon("./logo_isir.ico"))
         
         # settings
         for settings, legend in zip([self.printerSettings, self.fillSettings],
@@ -58,13 +64,6 @@ class PrusaSlicerLauncher(QMainWindow):
         vbox.addWidget(self.selectionFiles)
         vbox.addWidget(self.buttonPrusa)
         
-        centralWidget = QWidget()
-        centralWidget.setLayout(vbox)
-        self.setCentralWidget(centralWidget)
-        
-        self.setWindowTitle("PrusaSlicer pour les fainéants")
-        self.setWindowIcon(QIcon("./logo_isir.png"))       
-
 
     def setInitialSettings(self):
         [self.printerSettings["name"]["value"].addItem(printer["name"]) for printer in self.config["printers"].values()]
