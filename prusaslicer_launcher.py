@@ -137,8 +137,10 @@ def main():
     config = yaml.safe_load(Path("config.yaml").read_text())
     
     translator = QTranslator()
-    if translator.load(config["langage"], "./translations"):
-        print(f'found translation file: {translator.filePath()}')
+    langage = config["langage"]
+    if langage != "":
+        print(f'langage: {langage}')
+        translator.load(f'translations_{langage}', directory='./translations')
         app.installTranslator(translator)
     
     window = PrusaSlicerLauncher(config)
