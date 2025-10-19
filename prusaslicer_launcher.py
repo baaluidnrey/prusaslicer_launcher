@@ -95,7 +95,7 @@ class PrusaSlicerLauncher(QMainWindow):
     def optionsFilament(self):
         options = dict()
         if self.apply_filament_settings:
-            file_path = f'./filaments/{self.printerSettings["filaments"]["value"].currentText()}.ini'
+            file_path = f'{self.config["config_path"]}/filaments/{self.printerSettings["filaments"]["value"].currentText()}.ini'
             with open(file_path, "r") as file:
                 for line in file:
                     option, val = line.replace('\n', '').split(" = ")
@@ -106,9 +106,10 @@ class PrusaSlicerLauncher(QMainWindow):
     
     
     def openPrusaSlicer(self):
-          
-        profile_src = f"./profiles/{self.selectedProfile()}.ini"
-        profile_dst = "./profiles/tmp.ini"
+        
+        config_path = self.config["config_path"]
+        profile_src = f"{config_path}/profiles/{self.selectedProfile()}.ini"
+        profile_dst = "config.ini"
         
         # apply filament settings
         options_filament = self.optionsFilament()

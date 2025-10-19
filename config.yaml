@@ -29,3 +29,4 @@ fill_pattern:
 fill_density: ["5%", "10%", "20%", "40%", "60%"]
 
 prusa_path: "C:/Program Files/Prusa3D/PrusaSlicer/prusa-slicer.exe"
+config_path: "./config"
