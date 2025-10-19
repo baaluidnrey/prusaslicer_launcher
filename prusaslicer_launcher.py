@@ -13,23 +13,25 @@ from widget_selection_files import WidgetSelectionFiles
 
 class PrusaSlicerLauncher(QMainWindow):
     
-    def __init__(self, config, parent=None):
+    def __init__(self, parent=None):
         super(PrusaSlicerLauncher, self).__init__(parent)
-        self.config = config
+        
         self.printerSettings = {
-            'name': {'label': self.tr("Name"), 'value': QComboBox()},
+            'name': {'label': "Name", 'value': QComboBox()},
             # 'nozzles': {'label': "Nozzle", 'value': QComboBox()},
-            'filaments': {'label': self.tr("Filament"), 'value': QComboBox()},
-            'profiles': {'label': self.tr("Profile"),'value': QComboBox()},         
+            'filaments': {'label': "Filament", 'value': QComboBox()},
+            'profiles': {'label': "Profile",'value': QComboBox()},         
         }
         self.apply_filament_settings = False
         self.fillSettings = {
-            'pattern': {'label': self.tr("Pattern"), 'value': QComboBox()},
-            'density': {'label': self.tr("Density"), 'value': QComboBox()},   
+            'pattern': {'label': "Pattern", 'value': QComboBox()},
+            'density': {'label': "Density", 'value': QComboBox()},   
         }
-        self.buttonPrusa = QPushButton(self.tr("Open PrusaSlicer"))
+        self.buttonPrusa = QPushButton("Open PrusaSlicer")
+        
+        self.config = yaml.safe_load(Path("config.yaml").read_text())
         self.selectionFiles = WidgetSelectionFiles()
-                        
+                
         # create application
         self.createGUI()
         self.setInitialSettings()
@@ -49,7 +51,7 @@ class PrusaSlicerLauncher(QMainWindow):
         
         # settings
         for settings, legend in zip([self.printerSettings, self.fillSettings],
-                                    [self.tr("Printer settings"), self.tr("Fill settings")]):
+                                    ["Printer settings", "Fill settings"]):
             grid = QGridLayout()
             for index, setting in enumerate(settings.values(), start=1):
                 grid.addWidget(QLabel(setting["label"]), index, 1)
@@ -133,19 +135,10 @@ class PrusaSlicerLauncher(QMainWindow):
 
 
 def main():
-    app = QApplication(sys.argv)
-    config = yaml.safe_load(Path("config.yaml").read_text())
-    
-    translator = QTranslator()
-    langage = config["langage"]
-    if langage != "":
-        print(f'langage: {langage}')
-        translator.load(f'translations_{langage}', directory='./translations')
-        app.installTranslator(translator)
-    
-    window = PrusaSlicerLauncher(config)
-    window.show()
-    sys.exit(app.exec_())
+   app = QApplication(sys.argv)
+   window = PrusaSlicerLauncher()
+   window.show()
+   sys.exit(app.exec_())
 
 if __name__ == '__main__':
-    main()
+   main()
