@@ -29,7 +29,7 @@ class PrusaSlicerLauncher(QMainWindow):
         }
         self.buttonPrusa = QPushButton("Open PrusaSlicer")
         
-        self.config = yaml.safe_load(Path("config.yaml").read_text())
+        self.config = yaml.safe_load(Path("config/config.yaml").read_text())
         self.selectionFiles = WidgetSelectionFiles()
                 
         # create application

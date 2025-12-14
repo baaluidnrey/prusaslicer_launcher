@@ -1,5 +1,5 @@
 # Application
-config/*
+# config/*
 config.ini
 
 # Byte-compiled / optimized / DLL files
