@@ -1,23 +1,8 @@
 printers:
   MK4:
-    name: "Prusa MK4"
-    # nozzles: ["0.4mm"]
-    filaments: ["PLA_ROSA", "PETG_ROSA", "TPU_ROSA"]
-    profiles: ["DRAFT", "DETAIL", "SPEED"]
-    apply_filament_settings: True
-
-  XL:
-    name: "Prusa XL"
-    # nozzles: ["1: 0.4mm", "2: 0.4mm", "3: 0.4mm", "4: 0.4mm", "5: 0.4mm"]
-    filaments: ["PLA_ROSA", "PETG_ROSA", "TPU_ROSA"]
-    profiles: ["SPEED", "STRUCTURAL"]
-    apply_filament_settings: False
-
-  CR10:
-    name: "Creality CR10"
-    # nozzles: ["0.6mm"]
-    filaments: ["PLA_ROSA"]
-    profiles: ["SUPERDRAFT"]
+    name: "Original Prusa MK4S HF0.4 nozzle - aline"
+    filaments: ["Generic PETG - aline"]
+    profiles: ["0.20mm SPEED - aline"]
     apply_filament_settings: True
 
 fill_pattern:
@@ -30,3 +15,4 @@ fill_density: ["5%", "10%", "20%", "40%", "60%"]
 
 prusa_path: "C:/Program Files/Prusa3D/PrusaSlicer/prusa-slicer.exe"
 config_path: "./config"
+prusa_config_path: "C:/Users/aline/AppData/Roaming/PrusaSlicer"
