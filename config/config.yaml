@@ -2,7 +2,7 @@ printers:
   MK4:
     name: "Original Prusa MK4S HF0.4 nozzle - aline"
     filaments: ["Generic PETG - aline"]
-    profiles: ["0.20mm SPEED - aline"]
+    profiles: ["0.20mm SPEED @MK4S HF0.4 - aline"]
     apply_filament_settings: True
 
 fill_pattern:

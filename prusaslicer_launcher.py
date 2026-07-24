@@ -96,60 +96,72 @@ class PrusaSlicerLauncher(QMainWindow):
             self.printerSettings[key]["value"].clear()
             [self.printerSettings[key]["value"].addItem(item) for item in printer[key]]
             
-            
+    def selectedPrinter(self):
+        return self.printerSettings["name"]["value"].currentText()    
+        
     def selectedProfile(self):
-        # printer = list(self.config["printers"].keys())[self.printerSettings["name"]["value"].currentIndex()]
-        # profile = self.printerSettings["profiles"]["value"].currentText()
-        # return printer + "_" + profile
         return self.printerSettings["profiles"]["value"].currentText()
-
-
-    def optionsFilament(self):
-        options = dict()
-        if self.apply_filament_settings:
-            file_path = f'{self.config["prusa_config_path"]}/filaments/{self.printerSettings["filaments"]["value"].currentText()}.ini'
-            with open(file_path, "r") as file:
-                for line in file:
-                    option, val = line.replace('\n', '').split(" = ")
-                    options[option] = val
-        else:
-            print("No application of the filament settings.")
-        return options
     
-    def applyOptions(self, config_file_path, type):
+    def selectedFilament(self):
+        return self.printerSettings["filaments"]["value"].currentText()
+    
+    def getOptions(self, type):
         options = dict()
-        folder_name = self.prusa_folders[type]
-        options_file_path = f'{self.config["prusa_config_path"]}/{folder_name}/{self.printerSettings[type]["value"].currentText()}.ini'
-        print(f'options_file_path: {options_file_path}')
-        # 1. extract options
+        options_file_path = f'{self.config["prusa_config_path"]}/{self.prusa_folders[type]}/{self.printerSettings[type]["value"].currentText()}.ini'
+        print(f"Reading options from {options_file_path}")
         with open(options_file_path, "r") as file_src:
             for line in file_src:
                 if " = " in line:
-                    option, val = line.replace('\n', '').split(' = ')
+                    option, val = line.replace('\n', '').split(" = ", maxsplit=1)
                     options[option] = val
-        # 2. apply options
-        with open(config_file_path, "w") as file_dst:
-            for line in open(options_file_path, "r"):
+        return options
+    
+    
+    def applyOptions(self, options, output_file_path, input_file_path):
+        with open(output_file_path, "w") as file_dst:
+            for line in open(input_file_path, "r"):
                 if " = " in line:
                     option, _ = line.replace('\n', '').split(" = ", 1)
                     if option in options.keys():
                         file_dst.write(f'{option} = {options[option]}\n')
                     else:
                         file_dst.write(line)
-    
+        # the application of the options does not work.
+        # the added options are not taken into acccount
+        # the problem is because the options used in this method should be the current options and not the added options
     
     def openPrusaSlicer(self):
         config_path = self.config["prusa_config_path"]
         profile_src = f"{config_path}/print/{self.selectedProfile()}.ini"
+        
+        output_step_1 = "step_1.ini"
+        output_step_2 = "step_2.ini"
         profile_dst = "config.ini"
         
-        # 1. create content of profile_src in profile_dst
-        with open(profile_dst, "w") as file_dst:
-            for line in open(profile_src, "r"):
-                file_dst.write(line)
+        # 1. apply print settings
+        options = self.getOptions('profiles')
+        print(f"options: {options}")
+        options[f"print_settings_id"] = f'{self.selectedProfile()}'
+        print_src = f"{config_path}/print/{self.selectedProfile()}.ini"
+        self.applyOptions(options, output_step_1, print_src)
         
+        # 2. apply filament settings
+        options = self.getOptions('filaments')
+        print(f"options: {options}")
+        options[f"filament_settings_id"] = f'{self.selectedFilament()}'
+        profile_src = f"{config_path}/filament/{self.selectedFilament()}.ini"
         if self.apply_filament_settings:
-            self.applyOptions(profile_src, 'filaments')
+            self.applyOptions(options, output_step_2, output_step_1)
+        
+        # 3. apply printer settings
+        options = self.getOptions('name')
+        print(f"options: {options}\n---")
+        options[f"printer_settings_id"] = f'{self.selectedPrinter()}'
+        options[f"filament_settings_id"] = f'{self.selectedFilament()}'
+        options[f"print_settings_id"] = f'{self.selectedProfile()}'
+        printer_src = f"{config_path}/printer/{self.selectedPrinter()}.ini"
+        self.applyOptions(options, profile_dst, output_step_2)
+        
         # self.applyOptions()
         
         # apply filament settings
@@ -166,7 +178,7 @@ class PrusaSlicerLauncher(QMainWindow):
         # open prusa slicer with all the options
         cmd = [
             self.config["prusa_path"],
-            '--load', profile_dst,
+            '--load', "config.ini",
             '--fill-pattern', list(self.config["fill_pattern"].keys())[self.fillSettings["pattern"]["value"].currentIndex()],
             '--fill-density', self.fillSettings["density"]["value"].currentText(),
         ]
