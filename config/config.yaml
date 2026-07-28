@@ -4,6 +4,14 @@ printers:
     filaments: ["Generic PETG - aline"]
     profiles: ["0.20mm SPEED @MK4S HF0.4 - aline"]
     apply_filament_settings: True
+    nb_extruders: 1
+
+  XL:
+    name: "Original Prusa XL - 5T 0.4 nozzle - aline"
+    filaments: ["Generic PETG - aline"]
+    profiles: ["0.20mm QUALITY @XL 0.4 - aline"]
+    apply_filament_settings: True
+    nb_extruders: 5
 
 fill_pattern:
   rectilinear: "Rectiligne"

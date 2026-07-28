@@ -20,9 +20,11 @@ class PrusaSlicerLauncher(QMainWindow):
             'name': {'label': "Name", 'value': QComboBox()},
             # 'nozzles': {'label': "Nozzle", 'value': QComboBox()},
             'filaments': {'label': "Filament", 'value': QComboBox()},
-            'profiles': {'label': "Profile",'value': QComboBox()},         
+            'profiles': {'label': "Profile",'value': QComboBox()},
+            'extruder': {'label': "Extruder", 'value': QComboBox()},   
         }
         self.apply_filament_settings = False
+        self.nb_extruders = 1
         self.fillSettings = {
             'pattern': {'label': "Pattern", 'value': QComboBox()},
             'density': {'label': "Density", 'value': QComboBox()},   
@@ -91,10 +93,15 @@ class PrusaSlicerLauncher(QMainWindow):
         """
         _, printer = list(self.config["printers"].items())[self.printerSettings["name"]["value"].currentIndex()]
         self.apply_filament_settings = printer["apply_filament_settings"]
+        self.nb_extruders = printer["nb_extruders"]
         # for key in ["nozzles", "filaments", "profiles"]:
         for key in ["filaments", "profiles"]:
             self.printerSettings[key]["value"].clear()
             [self.printerSettings[key]["value"].addItem(item) for item in printer[key]]
+        for key in ["extruder"]:
+            self.printerSettings[key]["value"].clear()
+            [self.printerSettings[key]["value"].addItem(f"{i+1}") for i in range(self.nb_extruders)]
+            
             
     def selectedPrinter(self):
         return self.printerSettings["name"]["value"].currentText()    
@@ -150,23 +157,48 @@ class PrusaSlicerLauncher(QMainWindow):
         
         # 3. add the selected printer, filament and profile to the options
         options[f"printer_settings_id"] = f'{self.selectedPrinter()}'
-        options[f"filament_settings_id"] = f'{self.selectedFilament()}'
+        # options[f"filament_settings_id"] = f'{self.selectedFilament()}'
         options[f"print_settings_id"] = f'{self.selectedProfile()}'
-
-        # 4. apply options to the profile
+        
+        # 4. add the selected extruder to the options
+        extruder_index = self.printerSettings["extruder"]["value"].currentIndex()
+        # options[f"infill_extruder"] = f'{extruder_index}'
+        # options[f"perimeter_extruder"] = f'{extruder_index}'
+        # options[f"solid_infill_extruder"] = f'{extruder_index}'
+        # options[f"filament_extruder_id"] = f'{extruder_index}'
+        # options[f"default_filament_profile"] = f'{self.selectedFilament()}'
+        filament_settings_id = f'\"{self.selectedFilament()}\"'
+        for i in range(0, self.nb_extruders-1):
+            filament_settings_id += f';\"{self.selectedFilament()}\"'
+            print(f'i: {i}')
+        print(f'filament_settings_id: {filament_settings_id}')
+        options[f"filament_settings_id"] = f'{filament_settings_id}'
+        
+        # options[f"support_material_extruder"] = f'{extruder_index}'
+        
+        
+        # 5. apply options to the profile
         with open(profile_dst, "w") as file_dst:
             for option in options.keys():
                 file_dst.write(f'{option} = {options[option]}\n')
+                
+        print(f'options successfully applied')
         
-        # 5. open prusa slicer with all the options
+        # 6. open prusa slicer with all the options
         cmd = [
             self.config["prusa_path"],
             '--load', "config.ini",
             '--fill-pattern', list(self.config["fill_pattern"].keys())[self.fillSettings["pattern"]["value"].currentIndex()],
             '--fill-density', self.fillSettings["density"]["value"].currentText(),
+            '--infill-extruder', self.printerSettings["extruder"]["value"].currentText(),
+            '--perimeter-extruder', self.printerSettings["extruder"]["value"].currentText(),
+            # '--filament-extruder-id', self.printerSettings["extruder"]["value"].currentText(), 
+            # '--solid_infill_extruder', self.printerSettings["extruder"]["value"].currentText(),
         ]
         for index, file in enumerate(self.selectionFiles.getFiles()):
             cmd.insert(1+index, file)
+            
+        print(f'cmd: {cmd}')
             
         subprocess.Popen(cmd, shell=False, creationflags=subprocess.CREATE_NEW_CONSOLE)
 
