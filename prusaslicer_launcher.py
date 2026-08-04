@@ -173,17 +173,35 @@ class PrusaSlicerLauncher(QMainWindow):
         options_printer = self.getOptions(printer_src)
         # options_physical_printer = self.getOptions(physical_printer_src)
         
-        # 2. concatenate options
-        options = self.concatenateOptions(options, options_filament)
+        # 2. handle multi-extruders machines
+        _, printer = list(self.config["printers"].items())[self.printerSettings["name"]["value"].currentIndex()]
+        options_filament = dict()
+        options_all_filaments = dict()
+        for extruder in printer["extruders"]:
+            if extruder == self.selectedNozzle():
+                filament = self.selectedFilament()
+            else:
+                filament = printer["nozzles"][extruder]["filaments"][0]
+            options_filament[extruder] = self.getOptions(
+                f"{config_path}/filament/{filament}.ini"
+            )
+         
+        # concatenate filament options
+        for index, extruder in enumerate(printer["extruders"]):
+            for key in options_filament[extruder].keys():
+                if index == 0:
+                    options_all_filaments[key] = f'{options_filament[extruder][key]}'  # creation for first occurence
+                else:
+                    options_all_filaments[key] += f',{options_filament[extruder][key]}' # else, concatenate
+        
+        # 3. concatenate options
+        options = self.concatenateOptions(options, options_all_filaments)
         options = self.concatenateOptions(options, options_printer)
         
-        # 3. add the selected printer, filament and profile to the options
+        # 4. add the selected printer, filament and profile to the options
         options[f"printer_settings_id"] = f'{self.selectedPrinter()}'
         options[f"print_settings_id"] = f'{self.selectedProfile()}'
-        
-        # 4. add the nozzle(s) to the options
         filament_settings_id = ""
-        _, printer = list(self.config["printers"].items())[self.printerSettings["name"]["value"].currentIndex()]
         for index, extruder in enumerate(printer["extruders"]):
             if index != 0:
                 filament_settings_id += f';'
@@ -192,7 +210,7 @@ class PrusaSlicerLauncher(QMainWindow):
             else:
                 filament_settings_id += f'{printer["nozzles"][extruder]["filaments"][0]}'     # first as default for non-selected nozzle
         options[f"filament_settings_id"] = f'{filament_settings_id}'
-                
+        
         # 5. apply options to the profile
         with open(profile_dst, "w") as file_dst:
             for option in options.keys():
