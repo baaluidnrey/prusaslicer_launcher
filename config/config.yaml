@@ -1,17 +1,24 @@
 printers:
   MK4:
     name: "Original Prusa MK4S HF0.4 nozzle - aline"
-    filaments: ["Generic PETG - aline"]
-    profiles: ["0.20mm SPEED @MK4S HF0.4 - aline"]
-    apply_filament_settings: True
-    nb_extruders: 1
+    physical_printers: ["15"]
+    nozzles:
+      0.4mm:
+        filaments: ["Generic PETG - aline"]
+        profiles: ["0.20mm SPEED @MK4S HF0.4 - aline"]
+    extruders: ["0.4mm"]
 
   XL:
     name: "Original Prusa XL - 5T 0.4 nozzle - aline"
-    filaments: ["Generic PETG - aline"]
-    profiles: ["0.20mm QUALITY @XL 0.4 - aline"]
-    apply_filament_settings: True
-    nb_extruders: 5
+    physical_printers: ["16"]
+    nozzles:
+      0.4mm:
+        filaments: ["Generic PETG - aline"]
+        profiles: ["0.20mm QUALITY @XL 0.4 - aline"]
+      0.6mm:
+        filaments: ["Generic PETG - aline"]
+        profiles: ["0.20mm QUALITY @XL 0.6 - aline"]
+    extruders: ["0.4mm", "0.4mm", "0.4mm", "0.4mm", "0.6mm"]
 
 fill_pattern:
   rectilinear: "Rectiligne"
@@ -22,5 +29,4 @@ fill_pattern:
 fill_density: ["5%", "10%", "20%", "40%", "60%"]
 
 prusa_path: "C:/Program Files/Prusa3D/PrusaSlicer/prusa-slicer.exe"
-config_path: "./config"
-prusa_config_path: "C:/Users/aline/AppData/Roaming/PrusaSlicer"
+prusa_datadir: "C:/Users/aline/AppData/Roaming/PrusaSlicer"

@@ -18,12 +18,13 @@ class PrusaSlicerLauncher(QMainWindow):
         
         self.printerSettings = {
             'name': {'label': "Name", 'value': QComboBox()},
-            # 'nozzles': {'label': "Nozzle", 'value': QComboBox()},
+            'physical_printers': {'label': "Physical printer", 'value': QComboBox()},
+        }
+        self.nozzleSettings = {
+            'diameter': {'label': "Diameter", 'value': QComboBox()},
             'filaments': {'label': "Filament", 'value': QComboBox()},
             'profiles': {'label': "Profile",'value': QComboBox()},
-            'extruder': {'label': "Extruder", 'value': QComboBox()},   
         }
-        self.apply_filament_settings = False
         self.nb_extruders = 1
         self.fillSettings = {
             'pattern': {'label': "Pattern", 'value': QComboBox()},
@@ -35,7 +36,6 @@ class PrusaSlicerLauncher(QMainWindow):
             'profiles': 'print',
         }
         self.buttonPrusa = QPushButton("Open PrusaSlicer")
-        
         self.config = yaml.safe_load(Path("config/config.yaml").read_text())
         self.selectionFiles = WidgetSelectionFiles()
                 
@@ -43,6 +43,7 @@ class PrusaSlicerLauncher(QMainWindow):
         self.createGUI()
         self.setInitialSettings()
         self.printerSettings["name"]["value"].currentIndexChanged.connect(self.setPrinterSettings)
+        self.nozzleSettings["diameter"]["value"].currentIndexChanged.connect(self.setNozzleSettings)
         self.buttonPrusa.clicked.connect(self.openPrusaSlicer)
 
 
@@ -57,8 +58,8 @@ class PrusaSlicerLauncher(QMainWindow):
         self.setWindowIcon(QIcon("./logo_isir.ico"))
         
         # settings
-        for settings, legend in zip([self.printerSettings, self.fillSettings],
-                                    ["Printer settings", "Fill settings"]):
+        for settings, legend in zip([self.printerSettings, self.nozzleSettings, self.fillSettings],
+                                            ["Printer settings", "Nozzle settings", "Fill settings"]):
             grid = QGridLayout()
             for index, setting in enumerate(settings.values(), start=1):
                 grid.addWidget(QLabel(setting["label"]), index, 1)
@@ -66,11 +67,10 @@ class PrusaSlicerLauncher(QMainWindow):
             groupbox = QGroupBox(legend)
             groupbox.setLayout(grid)
             vbox.addWidget(groupbox)
-
+        
         # other elements
         vbox.addWidget(self.selectionFiles)
         vbox.addWidget(self.buttonPrusa)
-        
 
     def setInitialSettings(self):
         """
@@ -92,19 +92,36 @@ class PrusaSlicerLauncher(QMainWindow):
         Update the printer settings based on the selected printer in the GUI
         """
         _, printer = list(self.config["printers"].items())[self.printerSettings["name"]["value"].currentIndex()]
-        self.apply_filament_settings = printer["apply_filament_settings"]
-        self.nb_extruders = printer["nb_extruders"]
-        # for key in ["nozzles", "filaments", "profiles"]:
-        for key in ["filaments", "profiles"]:
+
+        # printer
+        for key in ["physical_printers"]:
             self.printerSettings[key]["value"].clear()
             [self.printerSettings[key]["value"].addItem(item) for item in printer[key]]
-        for key in ["extruder"]:
-            self.printerSettings[key]["value"].clear()
-            [self.printerSettings[key]["value"].addItem(f"{i+1}") for i in range(self.nb_extruders)]
             
+        # nozzle
+        self.nozzleSettings["diameter"]["value"].clear()
+        for diameter in printer["nozzles"].keys():
+            self.nozzleSettings["diameter"]["value"].addItem(diameter)
+        self.setNozzleSettings()    # first as default
+
+            
+    def setNozzleSettings(self):
+        """
+        Update the nozzle settings based on the selected nozzle in the GUI
+        """
+        _, printer = list(self.config["printers"].items())[self.printerSettings["name"]["value"].currentIndex()]
+        _, nozzle = list(printer["nozzles"].items())[self.nozzleSettings["diameter"]["value"].currentIndex()]
+
+        for key in ["filaments", "profiles"]:
+            self.nozzleSettings[key]["value"].clear()
+            [self.nozzleSettings[key]["value"].addItem(item) for item in nozzle[key]]
+          
             
     def selectedPrinter(self):
-        return self.printerSettings["name"]["value"].currentText()    
+        return self.printerSettings["name"]["value"].currentText()
+    
+    def selectedPhysicalPrinter(self):
+         return self.printerSettings["physical_printers"]["value"].currentText()
         
     def selectedProfile(self):
         return self.printerSettings["profiles"]["value"].currentText()
@@ -161,12 +178,6 @@ class PrusaSlicerLauncher(QMainWindow):
         options[f"print_settings_id"] = f'{self.selectedProfile()}'
         
         # 4. add the selected extruder to the options
-        extruder_index = self.printerSettings["extruder"]["value"].currentIndex()
-        # options[f"infill_extruder"] = f'{extruder_index}'
-        # options[f"perimeter_extruder"] = f'{extruder_index}'
-        # options[f"solid_infill_extruder"] = f'{extruder_index}'
-        # options[f"filament_extruder_id"] = f'{extruder_index}'
-        # options[f"default_filament_profile"] = f'{self.selectedFilament()}'
         filament_settings_id = f'\"{self.selectedFilament()}\"'
         for i in range(0, self.nb_extruders-1):
             filament_settings_id += f';\"{self.selectedFilament()}\"'
