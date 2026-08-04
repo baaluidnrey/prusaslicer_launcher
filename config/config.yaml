@@ -1,23 +1,23 @@
 printers:
   MK4:
     name: "Original Prusa MK4S HF0.4 nozzle - aline"
-    physical_printers: ["15"]
+    physical_printers: []
     nozzles:
       0.4mm:
-        filaments: ["Generic PETG - aline"]
+        filaments: ["Prusament PETG @MK4S HF0.4 - aline", "Prusament PLA @MK4S HF0.4 - aline"]
         profiles: ["0.20mm SPEED @MK4S HF0.4 - aline"]
     extruders: ["0.4mm"]
 
   XL:
-    name: "Original Prusa XL - 5T 0.4 nozzle - aline"
-    physical_printers: ["16"]
+    name: "Original Prusa XL - 5T Input Shaper 0.4 et 0.6 nozzle - aline"
+    physical_printers: []
     nozzles:
       0.4mm:
-        filaments: ["Generic PETG - aline"]
-        profiles: ["0.20mm QUALITY @XL 0.4 - aline"]
+        filaments: ["Prusament PETG @XL 0.4 - aline", "Prusament PLA @XL 0.4 - aline"]
+        profiles: ["0.20mm SPEED @XL 0.4 - aline"]
       0.6mm:
-        filaments: ["Generic PETG - aline"]
-        profiles: ["0.20mm QUALITY @XL 0.6 - aline"]
+        filaments: ["Prusament PETG @XL 0.6 - aline", "Prusament PLA @XL 0.6 - aline"]
+        profiles: ["0.20mm SPEED @XL 0.6 - aline"]
     extruders: ["0.4mm", "0.4mm", "0.4mm", "0.4mm", "0.6mm"]
 
 fill_pattern:
