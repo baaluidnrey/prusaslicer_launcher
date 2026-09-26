@@ -18,24 +18,32 @@ class PrusaSlicerLauncher(QMainWindow):
         
         self.printerSettings = {
             'name': {'label': "Name", 'value': QComboBox()},
-            # 'nozzles': {'label': "Nozzle", 'value': QComboBox()},
-            'filaments': {'label': "Filament", 'value': QComboBox()},
-            'profiles': {'label': "Profile",'value': QComboBox()},         
+            'physical_printers': {'label': "Physical printer", 'value': QComboBox()},
         }
-        self.apply_filament_settings = False
+        self.nozzleSettings = {
+            'diameter': {'label': "Diameter", 'value': QComboBox()},
+            'filaments': {'label': "Filament", 'value': QComboBox()},
+            'profiles': {'label': "Profile",'value': QComboBox()},
+        }
+        self.nb_extruders = 1
         self.fillSettings = {
             'pattern': {'label': "Pattern", 'value': QComboBox()},
             'density': {'label': "Density", 'value': QComboBox()},   
         }
+        self.prusa_folders = {
+            'name': 'printer',
+            'filaments': 'filament',
+            'profiles': 'print',
+        }
         self.buttonPrusa = QPushButton("Open PrusaSlicer")
-        
-        self.config = yaml.safe_load(Path("config/config.yaml").read_text())
+        self.config = yaml.safe_load(Path("./config.yaml").read_text())
         self.selectionFiles = WidgetSelectionFiles()
                 
         # create application
         self.createGUI()
         self.setInitialSettings()
         self.printerSettings["name"]["value"].currentIndexChanged.connect(self.setPrinterSettings)
+        self.nozzleSettings["diameter"]["value"].currentIndexChanged.connect(self.setNozzleSettings)
         self.buttonPrusa.clicked.connect(self.openPrusaSlicer)
 
 
@@ -50,8 +58,8 @@ class PrusaSlicerLauncher(QMainWindow):
         self.setWindowIcon(QIcon("./logo_isir.ico"))
         
         # settings
-        for settings, legend in zip([self.printerSettings, self.fillSettings],
-                                    ["Printer settings", "Fill settings"]):
+        for settings, legend in zip([self.printerSettings, self.nozzleSettings, self.fillSettings],
+                                            ["Printer settings", "Nozzle settings", "Fill settings"]):
             grid = QGridLayout()
             for index, setting in enumerate(settings.values(), start=1):
                 grid.addWidget(QLabel(setting["label"]), index, 1)
@@ -59,13 +67,15 @@ class PrusaSlicerLauncher(QMainWindow):
             groupbox = QGroupBox(legend)
             groupbox.setLayout(grid)
             vbox.addWidget(groupbox)
-
+        
         # other elements
         vbox.addWidget(self.selectionFiles)
         vbox.addWidget(self.buttonPrusa)
-        
 
     def setInitialSettings(self):
+        """
+        Set the initial settings for the GUI
+        """
         [self.printerSettings["name"]["value"].addItem(printer["name"]) for printer in self.config["printers"].values()]
         self.setPrinterSettings()   # first as default
         
@@ -78,59 +88,131 @@ class PrusaSlicerLauncher(QMainWindow):
         
 
     def setPrinterSettings(self):
+        """
+        Update the printer settings based on the selected printer in the GUI
+        """
         _, printer = list(self.config["printers"].items())[self.printerSettings["name"]["value"].currentIndex()]
-        self.apply_filament_settings = printer["apply_filament_settings"]
-        # for key in ["nozzles", "filaments", "profiles"]:
-        for key in ["filaments", "profiles"]:
+
+        # printer
+        for key in ["physical_printers"]:
             self.printerSettings[key]["value"].clear()
             [self.printerSettings[key]["value"].addItem(item) for item in printer[key]]
             
+        # nozzle
+        self.nozzleSettings["diameter"]["value"].clear()
+        for diameter in printer["nozzles"].keys():
+            self.nozzleSettings["diameter"]["value"].addItem(diameter)
+        self.setNozzleSettings()    # first as default
+
             
+    def setNozzleSettings(self):
+        """
+        Update the nozzle settings based on the selected nozzle in the GUI
+        """
+        _, printer = list(self.config["printers"].items())[self.printerSettings["name"]["value"].currentIndex()]
+        _, nozzle = list(printer["nozzles"].items())[self.nozzleSettings["diameter"]["value"].currentIndex()]
+
+        for key in ["filaments", "profiles"]:
+            self.nozzleSettings[key]["value"].clear()
+            [self.nozzleSettings[key]["value"].addItem(item) for item in nozzle[key]]
+          
+            
+    def selectedPrinter(self):
+        return self.printerSettings["name"]["value"].currentText()
+    
+    def selectedPhysicalPrinter(self):
+         return self.printerSettings["physical_printers"]["value"].currentText()
+     
+    def selectedNozzle(self):
+        return self.nozzleSettings["diameter"]["value"].currentText()
+        
     def selectedProfile(self):
-        printer = list(self.config["printers"].keys())[self.printerSettings["name"]["value"].currentIndex()]
-        profile = self.printerSettings["profiles"]["value"].currentText()
-        return printer + "_" + profile
-
-
-    def optionsFilament(self):
+        return self.nozzleSettings["profiles"]["value"].currentText()
+    
+    def selectedFilament(self):
+        return self.nozzleSettings["filaments"]["value"].currentText()
+    
+    
+    def getOptions(self, file_path):
         options = dict()
-        if self.apply_filament_settings:
-            file_path = f'{self.config["config_path"]}/filaments/{self.printerSettings["filaments"]["value"].currentText()}.ini'
-            with open(file_path, "r") as file:
-                for line in file:
-                    option, val = line.replace('\n', '').split(" = ")
+        with open(file_path, "r") as file_src:
+            for line in file_src:
+                if " = " in line:
+                    option, val = line.replace('\n', '').split(" = ", maxsplit=1)
                     options[option] = val
-        else:
-            print("No application of the filament settings.")
         return options
     
     
+    def concatenateOptions(self, options_1, options_2):
+        """
+        Concatenate two dictionaries, giving priority to the second one
+        """
+        options = dict()
+        for option, val in options_1.items():
+            if option in options_2.keys():
+                options[option] = options_2[option]
+            else:
+                options[option] = val
+        for option, val in options_2.items():
+            if option not in options.keys():
+                options[option] = val
+        return options
+    
+
     def openPrusaSlicer(self):
-        
-        config_path = self.config["config_path"]
-        profile_src = f"{config_path}/profiles/{self.selectedProfile()}.ini"
+        config_path = self.config["prusa_datadir"]
+        profile_src = f"{config_path}/print/{self.selectedProfile()}.ini"
+        filament_src = f"{config_path}/filament/{self.selectedFilament()}.ini"
+        printer_src = f"{config_path}/printer/{self.selectedPrinter()}.ini"
+        physical_printer_src = f"{config_path}/physical_printer/{self.selectedPhysicalPrinter()}.ini"
         profile_dst = "config.ini"
         
-        # apply filament settings
-        options_filament = self.optionsFilament()
+        # 1. get options
+        options = self.getOptions(profile_src) if Path(profile_src).exists() else None
+        options_filament = self.getOptions(filament_src) if Path(filament_src).exists() else None
+        options_printer = self.getOptions(printer_src) if Path(printer_src).exists() else None
+        options_physical_printer = self.getOptions(physical_printer_src) if Path(physical_printer_src).exists() else None
+        
+        # 2. concatenate options
+        options = self.concatenateOptions(options, options_filament) if options_filament is not None else options
+        options = self.concatenateOptions(options, options_printer) if options_printer is not None else options
+        options = self.concatenateOptions(options, options_physical_printer) if options_physical_printer is not None else options
+        
+        # 3. add the selected printer, filament and profile to the options (to be correctly displayed on PrusaSlicer)
+        options[f"printer_settings_id"] = f'{self.selectedPrinter()}'
+        options[f"print_settings_id"] = f'{self.selectedProfile()}'
+        
+        # 4. add the nozzle(s) to the options
+        filament_settings_id = ""
+        _, printer = list(self.config["printers"].items())[self.printerSettings["name"]["value"].currentIndex()]
+        for index, extruder in enumerate(printer["extruders"]):
+            if index != 0:
+                filament_settings_id += f';'
+            if extruder == self.selectedNozzle():
+                filament_settings_id += f'\"{self.selectedFilament()}\"'
+            else:
+                filament_settings_id += f'{printer["nozzles"][extruder]["filaments"][0]}'     # first as default for non-selected nozzle
+        options[f"filament_settings_id"] = f'{filament_settings_id}'
+        
+        # 5. apply options to the profile
         with open(profile_dst, "w") as file_dst:
-            for line in open(profile_src, "r"):
-                if " = " in line:
-                    option, _ = line.replace('\n', '').split(" = ", 1)
-                    if option in options_filament.keys():
-                        file_dst.write(f'{option} = {options_filament[option]}\n')
-                    else:
-                        file_dst.write(line)
-            
-        # open prusa slicer with all the options
+            for option in options.keys():
+                file_dst.write(f'{option} = {options[option]}\n')
+                
+        print(f'options successfully applied')
+        
+        # 6. open prusa slicer with all the options
         cmd = [
             self.config["prusa_path"],
-            '--load', profile_dst,
+            '--datadir', self.config["prusa_datadir"],
+            '--load', "config.ini",
             '--fill-pattern', list(self.config["fill_pattern"].keys())[self.fillSettings["pattern"]["value"].currentIndex()],
             '--fill-density', self.fillSettings["density"]["value"].currentText(),
         ]
         for index, file in enumerate(self.selectionFiles.getFiles()):
             cmd.insert(1+index, file)
+            
+        print(f'cmd: {cmd}')
             
         subprocess.Popen(cmd, shell=False, creationflags=subprocess.CREATE_NEW_CONSOLE)
 
