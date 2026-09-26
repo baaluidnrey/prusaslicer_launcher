@@ -36,7 +36,7 @@ class PrusaSlicerLauncher(QMainWindow):
             'profiles': 'print',
         }
         self.buttonPrusa = QPushButton("Open PrusaSlicer")
-        self.config = yaml.safe_load(Path("config/config.yaml").read_text())
+        self.config = yaml.safe_load(Path("./config.yaml").read_text())
         self.selectionFiles = WidgetSelectionFiles()
                 
         # create application
@@ -168,16 +168,17 @@ class PrusaSlicerLauncher(QMainWindow):
         profile_dst = "config.ini"
         
         # 1. get options
-        options = self.getOptions(profile_src)
-        options_filament = self.getOptions(filament_src)
-        options_printer = self.getOptions(printer_src)
-        # options_physical_printer = self.getOptions(physical_printer_src)
+        options = self.getOptions(profile_src) if Path(profile_src).exists() else None
+        options_filament = self.getOptions(filament_src) if Path(filament_src).exists() else None
+        options_printer = self.getOptions(printer_src) if Path(printer_src).exists() else None
+        options_physical_printer = self.getOptions(physical_printer_src) if Path(physical_printer_src).exists() else None
         
         # 2. concatenate options
-        options = self.concatenateOptions(options, options_filament)
-        options = self.concatenateOptions(options, options_printer)
+        options = self.concatenateOptions(options, options_filament) if options_filament is not None else options
+        options = self.concatenateOptions(options, options_printer) if options_printer is not None else options
+        options = self.concatenateOptions(options, options_physical_printer) if options_physical_printer is not None else options
         
-        # 3. add the selected printer, filament and profile to the options
+        # 3. add the selected printer, filament and profile to the options (to be correctly displayed on PrusaSlicer)
         options[f"printer_settings_id"] = f'{self.selectedPrinter()}'
         options[f"print_settings_id"] = f'{self.selectedProfile()}'
         
@@ -192,7 +193,7 @@ class PrusaSlicerLauncher(QMainWindow):
             else:
                 filament_settings_id += f'{printer["nozzles"][extruder]["filaments"][0]}'     # first as default for non-selected nozzle
         options[f"filament_settings_id"] = f'{filament_settings_id}'
-                
+        
         # 5. apply options to the profile
         with open(profile_dst, "w") as file_dst:
             for option in options.keys():

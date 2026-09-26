@@ -9,16 +9,16 @@ printers:
     extruders: ["0.4mm"]
 
   XL:
-    name: "Original Prusa XL - 5T Input Shaper 0.4 et 0.6 nozzle - aline"
+    name: "Prusa XL+ 5T 0.4&0.6 nozzle - aline"
     physical_printers: []
     nozzles:
       0.4mm:
-        filaments: ["Prusament PETG @XL 0.4 - aline", "Prusament PLA @XL 0.4 - aline"]
-        profiles: ["0.20mm SPEED @XL 0.4 - aline"]
+        filaments: ["Prusament PETG @XL+ - aline", "Prusament PLA @XL+ - aline"]
+        profiles: ["0.10mm Fine @XL+ 0.4 - aline", "0.20mm Balanced @XL+ 0.4 - aline"]
       0.6mm:
-        filaments: ["Prusament PETG @XL 0.6 - aline", "Prusament PLA @XL 0.6 - aline"]
-        profiles: ["0.20mm SPEED @XL 0.6 - aline"]
-    extruders: ["0.4mm", "0.4mm", "0.4mm", "0.4mm", "0.6mm"]
+        filaments: ["Prusament PETG @XL+ - aline", "Prusament PLA @XL+ - aline"]
+        profiles: ["0.20mm Balanced @XL+ 0.6 - aline"]
+    extruders: ["0.4mm", "0.4mm", "0.4mm", "0.6mm", "0.6mm"]
 
 fill_pattern:
   rectilinear: "Rectiligne"
